@@ -1,10 +1,31 @@
-# This is just an example to get you started. A typical library package
-# exports the main API in this file. Note that you cannot rename this file
-# but you can remove it if you wish.
+import httpClient
+import htmlparser
+import os
+import xmltree  # To use '$' for XmlNode
+import strtabs  # To access XmlAttributes
+import strutils # To use cmpIgnoreCase
 
-proc add*(x, y: int): int =
-  ## Adds two files together.
-  return x + y
+proc getImage(url: string): bool =
+
+  var client = newHttpClient()
+
+  downloadFile(client, url, "log.html")
+
+  var html = loadHtml("log.html")
+
+  for img in html.findAll("img"):
+    if img.attrs.hasKey "src":
+      let (dir, filename, ext) = splitFile(img.attrs["src"])
+      if ext == ".jpg" or ext == ".JPG":
+        var imgURL = "https:" & img.attrs["src"]
+        var filename = filename & ".jpg"
+        downloadFile(client, imgURL, "output/" & filename)
 
 
-echo add(3,5)
+  echo "downloaded!!"
+
+
+echo "Please give me one URL!"
+var url = readLine(stdin)
+
+discard getImage(url)
