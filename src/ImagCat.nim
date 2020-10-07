@@ -18,7 +18,7 @@ proc getImage(url: string): bool =
       let (dir, filename, ext) = splitFile(img.attrs["src"])
       if ext == ".jpg" or ext == ".JPG":
         var imgURL = "https:" & img.attrs["src"]
-        var filename = filename & ".jpg"
+        var filename = filename & ".png"
         downloadFile(client, imgURL, "output/" & filename)
 
 
