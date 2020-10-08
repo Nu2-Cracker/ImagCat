@@ -5,7 +5,8 @@ import
   xmltree,  # To use '$' for XmlNode
   strtabs,  # To access XmlAttributes
   strutils, # To use cmpIgnoreCase
-  re
+  re,
+  asyncdispatch
 
 
 type
@@ -29,12 +30,12 @@ proc checkURIscheme(link: string): string =
   return "https:" & link
 
 
-proc getloghtml(url: string): bool =
+proc getloghtml(url: string): void =
   var client = newHttpClient()
   downloadFile(client, url, "log.html")
 
 
-proc parsedhtml(url: string): bool =
+proc parsedhtml(url: string): seq[string] =
   var html = loadHtml("log.html")
   for img in html.findAll("img"):
     if img.attrs.hasKey "src":
@@ -42,25 +43,27 @@ proc parsedhtml(url: string): bool =
       var result = checkLink(imgURL)#画像urlがリンク切れしていないかどうかチェック
       if result.state:
         urlList.add(imgURL)
+  return urlList
+
         
 
-proc downloadImage(list: seq): bool =
+proc downloadImage(list: seq): void =
   var client = newHttpClient()
+
   for url in urlList:
     let (dir, filename, ext) = splitFile(url)
     try:
       downloadFile(client, url, "output/" & filename & ext)
     except:
       echo "Error: unhandled exception"
-
   echo "downloaded!!"
 
-
+var list:seq[string] = @[]
 echo "Please give me one URL!"
 var url = readLine(stdin)
 
-discard getloghtml(url)
-discard parsedhtml(url)
-discard downloadImage(urlList)
+getloghtml(url)
+list = parsedhtml(url)
+downloadImage(list)
 
 
