@@ -8,11 +8,13 @@ import
   re
 
 
-
 type
   LinkCheckResult = ref object
     link: string
     state: bool
+
+var urlList: seq[string] = @[]
+
 
 proc checkLink(link: string): LinkCheckResult =
   var client = newHttpClient()
@@ -27,24 +29,29 @@ proc checkURIscheme(link: string): string =
   return "https:" & link
 
 
-
-proc getImage(url: string): bool =
+proc getloghtml(url: string): bool =
   var client = newHttpClient()
   downloadFile(client, url, "log.html")
-  var html = loadHtml("log.html")
 
+
+proc parsedhtml(url: string): bool =
+  var html = loadHtml("log.html")
   for img in html.findAll("img"):
     if img.attrs.hasKey "src":
-      let (dir, filename, ext) = splitFile(img.attrs["src"])
       var imgURL = checkURIscheme(img.attrs["src"])
       var result = checkLink(imgURL)#画像urlがリンク切れしていないかどうかチェック
-
       if result.state:
-        try:
-          var filename = filename & ".png"
-          downloadFile(client, imgURL, "output/" & filename)
-        except:
-          echo "Error: unhandled exception"
+        urlList.add(imgURL)
+        
+
+proc downloadImage(list: seq): bool =
+  var client = newHttpClient()
+  for url in urlList:
+    let (dir, filename, ext) = splitFile(url)
+    try:
+      downloadFile(client, url, "output/" & filename & ext)
+    except:
+      echo "Error: unhandled exception"
 
   echo "downloaded!!"
 
@@ -52,6 +59,8 @@ proc getImage(url: string): bool =
 echo "Please give me one URL!"
 var url = readLine(stdin)
 
-discard getImage(url)
+discard getloghtml(url)
+discard parsedhtml(url)
+discard downloadImage(urlList)
 
 
