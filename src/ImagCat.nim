@@ -58,6 +58,7 @@ proc downloadImage(list: seq): void =
       echo "Error: unhandled exception"
   echo "downloaded!!"
 
+
 var list:seq[string] = @[]
 echo "Please give me one URL!"
 var url = readLine(stdin)
