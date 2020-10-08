@@ -8,6 +8,7 @@ import
   re
 
 
+
 type
   LinkCheckResult = ref object
     link: string
@@ -23,7 +24,6 @@ proc checkLink(link: string): LinkCheckResult =
 proc checkURIscheme(link: string): string =
   if match(link, re"^(http)"):
     return link
-
   return "https:" & link
 
 
@@ -38,20 +38,20 @@ proc getImage(url: string): bool =
       let (dir, filename, ext) = splitFile(img.attrs["src"])
       var imgURL = checkURIscheme(img.attrs["src"])
       var result = checkLink(imgURL)#画像urlがリンク切れしていないかどうかチェック
-      echo result.link
-      echo result.state
 
       if result.state:
-        var filename = filename & ".png"
-        downloadFile(client, imgURL, "output/" & filename)
-
+        try:
+          var filename = filename & ".png"
+          downloadFile(client, imgURL, "output/" & filename)
+        except:
+          echo "Error: unhandled exception"
 
   echo "downloaded!!"
-
-
 
 
 echo "Please give me one URL!"
 var url = readLine(stdin)
 
 discard getImage(url)
+
+
