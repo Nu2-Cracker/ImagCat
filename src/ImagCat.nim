@@ -1,9 +1,11 @@
-import httpClient
-import htmlparser
-import os
-import xmltree  # To use '$' for XmlNode
-import strtabs  # To access XmlAttributes
-import strutils # To use cmpIgnoreCase
+import
+  httpClient,
+  htmlparser,
+  os,
+  xmltree,  # To use '$' for XmlNode
+  strtabs,  # To access XmlAttributes
+  strutils, # To use cmpIgnoreCase
+  re
 
 
 type
@@ -18,6 +20,13 @@ proc checkLink(link: string): LinkCheckResult =
   except:
     return LinkCheckResult(link:link, state:false)
 
+proc checkURIscheme(link: string): string =
+  if match(link, re"^(http)"):
+    return link
+
+  return "https:" & link
+
+
 
 proc getImage(url: string): bool =
   var client = newHttpClient()
@@ -27,12 +36,14 @@ proc getImage(url: string): bool =
   for img in html.findAll("img"):
     if img.attrs.hasKey "src":
       let (dir, filename, ext) = splitFile(img.attrs["src"])
-      if ext == ".jpg" or ext == ".JPG":
-        var imgURL = "https:" & img.attrs["src"]
-        var result = checkLink(imgURL)#画像urlがリンク切れしていないかどうかチェック
-        if result.state:
-          var filename = filename & ".png"
-          downloadFile(client, imgURL, "output/" & filename)
+      var imgURL = checkURIscheme(img.attrs["src"])
+      var result = checkLink(imgURL)#画像urlがリンク切れしていないかどうかチェック
+      echo result.link
+      echo result.state
+
+      if result.state:
+        var filename = filename & ".png"
+        downloadFile(client, imgURL, "output/" & filename)
 
 
   echo "downloaded!!"
