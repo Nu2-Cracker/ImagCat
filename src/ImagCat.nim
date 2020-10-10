@@ -14,6 +14,11 @@ type
     link: string
     state: bool
 
+type 
+  DownloadState = ref object
+    state: bool
+
+
 var urlList: seq[string] = @[]
 
 
@@ -45,26 +50,34 @@ proc parsedhtml(url: string): seq[string] =
         urlList.add(imgURL)
   return urlList
 
-        
 
-proc downloadImage(list: seq): void =
-  var client = newHttpClient()
+proc asyncClient(link: string): Future[DownloadState] {.async.} =
+  var client = newAsyncHttpClient()
+  let future = client.get(link)
+  yield future
+  let (dir, filename, ext) = splitFile(link)
+  if future.failed:
+    echo "Error: unhandled exception"
+  else:
+    waitFor downloadFile(client, link, "output/" & filename & ext)
 
-  for url in urlList:
-    let (dir, filename, ext) = splitFile(url)
-    try:
-      downloadFile(client, url, "output/" & filename & ext)
-    except:
-      echo "Error: unhandled exception"
+
+
+proc downloadImage(list: seq[string]) {.async.} =
+  var futures= newSeq[Future[DownloadState]]()
+  for index, link in list:
+    futures.add(asyncClient(link))
+  let done = await all(futures)
   echo "downloaded!!"
-
 
 var list:seq[string] = @[]
 echo "Please give me one URL!"
 var url = readLine(stdin)
 
+
+
 getloghtml(url)
-list = parsedhtml(url)
-downloadImage(list)
+list= parsedhtml(url)
+waitFor downloadImage(list)
 
 
