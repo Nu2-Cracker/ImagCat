@@ -6,7 +6,10 @@ import
   strtabs,  # To access XmlAttributes
   strutils, # To use cmpIgnoreCase
   re,
-  asyncdispatch
+  asyncdispatch,
+  osproc
+
+
 type
   LinkCheckResult = ref object
     link: string
@@ -62,6 +65,7 @@ proc asyncClient(link: string): Future[DownloadState] {.async.} =
   if future.failed:
     echo "Error: unhandled exception"
   else:
+    discard execCmd("if [ ! -d ./output ]; then mkdir output ; fi")
     waitFor downloadFile(client, link, "output/" & filename & ext)
 
 
@@ -76,7 +80,7 @@ proc downloadImage(list: seq[string]) {.async.} =
 
 proc haveURLs(): int=
   var inputNumber: string = readLine(stdin)
-  if inputNumber == " ":
+  if inputNumber == "":
     var defaultNumber: int = 1
     return defaultNumber
   else:
@@ -84,13 +88,15 @@ proc haveURLs(): int=
 
 
 
-echo "How many URLs do you have?? If you have only one urls, you push enter button now."
+echo "Do you have two URLs please input 2."
+echo "If you have only one urls, you push enter button now."
 let num: int = haveURLs()
 echo "Please give me one URL!"
 
 while i < num:
   url = readLine(stdin)
   geturlList.add(url)
+  inc(i)
 
 for url in geturlList:
   getloghtml(url)
@@ -98,3 +104,4 @@ for url in geturlList:
   waitFor downloadImage(list)
 
 
+discard execCmd("rm log.html")
