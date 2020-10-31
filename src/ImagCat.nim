@@ -7,8 +7,6 @@ import
   strutils, # To use cmpIgnoreCase
   re,
   asyncdispatch
-
-
 type
   LinkCheckResult = ref object
     link: string
@@ -19,7 +17,12 @@ type
     state: bool
 
 
-var urlList: seq[string] = @[]
+var
+  geturlList: seq[string] = @[]
+  urlList: seq[string] = @[]
+  list:seq[string] = @[]
+  i: int = 0
+  url: string
 
 
 proc checkLink(link: string): LinkCheckResult =
@@ -70,14 +73,28 @@ proc downloadImage(list: seq[string]) {.async.} =
   let done = await all(futures)
   echo "downloaded!!"
 
-var list:seq[string] = @[]
+
+proc haveURLs(): int=
+  var inputNumber: string = readLine(stdin)
+  if inputNumber == " ":
+    var defaultNumber: int = 1
+    return defaultNumber
+  else:
+    return inputNumber.parseInt
+
+
+
+echo "How many URLs do you have?? If you have only one urls, you push enter button now."
+let num: int = haveURLs()
 echo "Please give me one URL!"
-var url = readLine(stdin)
 
+while i < num:
+  url = readLine(stdin)
+  geturlList.add(url)
 
-
-getloghtml(url)
-list= parsedhtml(url)
-waitFor downloadImage(list)
+for url in geturlList:
+  getloghtml(url)
+  list= parsedhtml(url)
+  waitFor downloadImage(list)
 
 
