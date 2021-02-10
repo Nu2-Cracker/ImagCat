@@ -1,0 +1,11 @@
+version: "2"
+services:
+  imagcat_apps:
+    image: imagcat_images
+    container_name: imagcat_container
+    build: .
+    ports:
+      - "4573:80"
+    volumes:
+      - ./ImagCat:/prj/ImagCat
+    tty: true
